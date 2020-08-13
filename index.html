@@ -10,7 +10,11 @@
         <script src="js/three.js"></script>
         <script src="js/ammo.js"></script>
         <script src="utils.js"></script>
-        <script>
+        <script src="water.js"></script>
+        <script type="module">
+
+            import {Water} from './water.mjs';
+
             //variable declaration section
             let physicsWorld, scene, camera, renderer, rigidBodies = [], tmpTrans = null
             let ballObject = null,
@@ -23,6 +27,7 @@
             let metallic = [];
             let waterlevel;
             let gravity = 20
+            let light;
             const FLAGS = { CF_KINEMATIC_OBJECT: 2}
 
             const STATE = { DISABLE_DEACTIVATION : 4}
@@ -41,13 +46,19 @@
                 setupPhysicsWorld();
 
                 setupGraphics();
-                createBlock();
+                createWater();
+                createBlock(0,0,0,100,2,100);
+                createInvisibleWall(0,0,-50,100,100,2)
+                createInvisibleWall(0,0, 50,100,100,2)
+                createInvisibleWall(50,0,-50,2,100,100)
+                createInvisibleWall(-50,0,-50,2,100,100)
+                createBlock()
                 createBall();
-                // createMagBall();
-                // createPositiveMagnetBall(20, 20);
-                // createPositiveMagnetBall(-20, -20);
-                // createNegativeMagnetBall(20, -20);
-                // createNegativeMagnetBall(-20, 20);
+                createMagBall();
+                createPositiveMagnetBall(20, 20);
+                createPositiveMagnetBall(-20, -20);
+                createNegativeMagnetBall(20, -20);
+                createNegativeMagnetBall(-20, 20);
 
                 setupEventHandlers();
                 renderFrame();
@@ -64,7 +75,7 @@
                 physicsWorld           = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
                 physicsWorld.setGravity(new Ammo.btVector3(0, 0, 0));
 
-                waterlevel = 10;
+                waterlevel = 20;
 
             }
 
@@ -85,6 +96,7 @@
 
                 //Add hemisphere light
                 let hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.1 );
+                light = hemiLight;
                 hemiLight.color.setHSL( 0.6, 0.6, 0.6 );
                 hemiLight.groundColor.setHSL( 0.1, 1, 0.4 );
                 hemiLight.position.set( 0, 50, 0 );
@@ -131,7 +143,7 @@
                 let deltaTime = clock.getDelta();
 
                 moveBall();
-                //moveMagBall();
+                moveMagBall();
                 
                 // for ( let i = 0; i < rigidBodies.length; i++ ) {
                 //     applyMagnetVelocity(rigidBodies[i]);
@@ -190,6 +202,14 @@
                         kMoveDirection.right = 1
                         break;
 
+                    case 76: //l -> water level up
+                        waterlevel++
+                        break;
+
+                    case 186: //; -> water level down
+                        waterlevel--
+                        break;
+
                 }
             }
 
@@ -229,14 +249,49 @@
                         kMoveDirection.right = 0
                         break;
 
+                    case 76:
+                        break;
+
+                    case 186:
+                        break;
+
                 }
 
             }
 
-            function createBlock(){
+
+            function createWater(){
+
+                // var waterGeometry = new THREE.PlaneBufferGeometry( 10000, 10000 );
+
+				water = new water(
+					waterGeometry,
+					{
+						textureWidth: 512,
+						textureHeight: 512,
+						waterNormals: new THREE.TextureLoader().load( 'textures/waternormals.jpg', function ( texture ) {
+
+							texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+
+						} ),
+						alpha: 1.0,
+						sunDirection: new THREE.Vector3(),
+						sunColor: 0xffffff,
+						waterColor: 0x001e0f,
+						distortionScale: 3.7,
+						fog: scene.fog !== undefined
+					}
+				);
+
+				water.rotation.x = - Math.PI / 2;
+
+				scene.add( water );
+            }
+
+            function createBlock( posx, posy, posz, scx, scy, scz){
                 
-                let pos = {x: 0, y: 0, z: 0};
-                let scale = {x: 100, y: 2, z: 100};
+                let pos = {x: posx, y: posy, z: posz};
+                let scale = {x: scx, y: scy, z: scz};
                 let quat = {x: 0, y: 0, z: 0, w: 1};
                 let mass = 0;
 
@@ -250,6 +305,47 @@
                 blockPlane.receiveShadow = true;
 
                 scene.add(blockPlane);
+
+
+                //Ammojs Section
+                let transform = new Ammo.btTransform();
+                transform.setIdentity();
+                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+                transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+                let motionState = new Ammo.btDefaultMotionState( transform );
+
+                let colShape = new Ammo.btBoxShape( new Ammo.btVector3( scale.x * 0.5, scale.y * 0.5, scale.z * 0.5 ) );
+                colShape.setMargin( 0.05 );
+
+                let localInertia = new Ammo.btVector3( 0, 0, 0 );
+                colShape.calculateLocalInertia( mass, localInertia );
+
+                let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+                let body = new Ammo.btRigidBody( rbInfo );
+
+                body.setFriction(4);
+                body.setRollingFriction(10);
+
+                physicsWorld.addRigidBody( body );
+            }
+
+            function createInvisibleWall( posx, posy, posz, scx, scy, scz){
+                
+                let pos = {x: posx, y: posy, z: posz};
+                let scale = {x: scx, y: scy, z: scz};
+                let quat = {x: 0, y: 0, z: 0, w: 1};
+                let mass = 0;
+
+                //threeJS Section
+                // let blockPlane = new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshPhongMaterial({color: 0xa0afa4}));
+
+                // blockPlane.position.set(pos.x, pos.y, pos.z);
+                // blockPlane.scale.set(scale.x, scale.y, scale.z);
+
+                // blockPlane.castShadow = true;
+                // blockPlane.receiveShadow = true;
+
+                // scene.add(blockPlane);
 
 
                 //Ammojs Section
@@ -365,6 +461,7 @@
                 
                 ball.userData.physicsBody = body;
                 rigidBodies.push(ball);
+                magnet.push(ball);
                 positiveMagnet.push(ball)
             }
 
@@ -460,53 +557,6 @@
                 rigidBodies.push(ball);
                 magnet.push(ball);
                 negativeMagnet.push(ball);
-            }
-
-            function createKinematicBox(){
-
-                let pos = {x: 40, y: 6, z: 5};
-                let scale = {x: 10, y: 10, z: 10};
-                let quat = {x: 0, y: 0, z: 0, w: 1};
-                let mass = 0;
-
-                //threeJS Section
-                kObject = new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshPhongMaterial({color: 0x30ab78}));
-
-                kObject.position.set(pos.x, pos.y, pos.z);
-                kObject.scale.set(scale.x, scale.y, scale.z);
-
-                kObject.castShadow = true;
-                kObject.receiveShadow = true;
-
-                scene.add(kObject);
-
-
-                //Ammojs Section
-                let transform = new Ammo.btTransform();
-                transform.setIdentity();
-                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
-                transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
-                let motionState = new Ammo.btDefaultMotionState( transform );
-
-                let colShape = new Ammo.btBoxShape( new Ammo.btVector3( scale.x * 0.5, scale.y * 0.5, scale.z * 0.5 ) );
-                colShape.setMargin( 0.05 );
-
-                let localInertia = new Ammo.btVector3( 0, 0, 0 );
-                colShape.calculateLocalInertia( mass, localInertia );
-
-                let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
-                let body = new Ammo.btRigidBody( rbInfo );
-
-                body.setFriction(4);
-                body.setRollingFriction(10);
-
-                body.setActivationState( STATE.DISABLE_DEACTIVATION );
-                body.setCollisionFlags( FLAGS.CF_KINEMATIC_OBJECT );
-
-
-                physicsWorld.addRigidBody( body );
-                kObject.userData.physicsBody = body;
-
             }
 
             function moveBall(){
@@ -608,21 +658,17 @@
                     return 0;
                 }
                 let r = rr.radius;
-                let h = curbody.position.y - waterlevel;
+                let h = curbody.position.y + r - waterlevel;
+                let caseval = curbody.position.y - waterlevel;
                 let sphereVol = 4 / 3 * Math.PI * Math.pow( r, 3 );
-                if ( -h > r ){
+                if ( -caseval > r ){
                     return sphereVol;
                 }
-                if ( h > r ){
+                if ( caseval > r ){
                     return 0;
                 }
                 let capVol = volCap( r, Math.abs( h ) );
-                if (h > 0) {
-                    // return capVol;
-                    return 0;
-                }
-                // return sphereVol - capVol;
-                return sphereVol
+                return sphereVol - capVol;
             }
             
             function calculateRatioUnder( curbody ){
@@ -631,53 +677,80 @@
                     return 0;
                 }
                 let r = rr.radius;
-                let h = curbody.position.y - waterlevel;
+                let h = curbody.position.y + r - waterlevel;
+                let caseval = curbody.position.y - waterlevel;
                 let sphereVol = 4 / 3 * Math.PI * Math.pow( r, 3 );
-                if ( -h > r ){
+                if ( -caseval > r ){
                     return 1;
                 }
-                return 0.6;
-                // if ( h > r ){
-                //     return 0;
-                // }
-                // let capVol = volCap( r, Math.abs( h ) );
-                // if (h > 0) {
-                //     return capVol / sphereVol;
-                // }
-                // return (sphereVol - capVol) / sphereVol;
+                if ( caseval > r ){
+                    return 0;
+                }
+                let capVol = volCap( r, Math.abs( h ) );
+                return (sphereVol - capVol) / sphereVol;
             }
 
             function applyBuo( deltaTime ){
                 for ( let i = 0; i < rigidBodies.length; i++ ){
                     let p = 1; //p is density. need update.
-                    let scalingFactor = 0.2;
+                    let scalingFactor = 0.1;
                     let body = rigidBodies[ i ].userData.physicsBody;
                     let vel = body.getLinearVelocity();
                     let ratioUnder = calculateRatioUnder( rigidBodies[ i ] );
                     let buo = p * scalingFactor * gravity * calculateVolUnder( rigidBodies[ i ] );
-                    let dampen = 0.4 * p * Math.pow(vel.y(), 2) / 2 * ratioUnder;
-                    if ( vel.y() < 0 ){
-                        dampen = -dampen;
+                    let dampenfactor = 0.4 * p / 2 * ratioUnder;
+                    // let dampenx = dampenfactor * Math.pow(vel.x(), 2);
+                    let dampeny = dampenfactor * Math.pow(vel.y(), 2);
+                    // let dampenz = dampenfactor * Math.pow(vel.z(), 2);
+                    let dampenx = 1;
+                    let dampenz = 1;
+                    let a = rigidBodies[ i ].position.y > waterlevel && vel.y() > 0;
+                    let b = rigidBodies[ i ].position.y < waterlevel && vel.y() < 0;
+                    if ( vel.x() < 0 ){
+                        dampenx = -dampenx;
                     }
-                    console.log(vel.y())
-                    console.log((buo - gravity - dampen) * deltaTime);
-                    let newvel = new Ammo.btVector3( vel.x(),
-                    vel.y() + (buo - gravity - dampen) * deltaTime,
-                    vel.z() ); //also need area, update p to be density
+                    if ( vel.y() < 0 ){
+                        dampeny = -dampeny;
+                    }
+                    if ( vel.z() < 0 ){
+                        dampenz = -dampenz;
+                    }
+                    if (ratioUnder > 0){
+                            let newvel = new Ammo.btVector3( vel.x() - dampenx,
+                            (vel.y() + (buo - gravity - dampeny * 40 * ratioUnder) * deltaTime),
+                            vel.z() - dampenz);
+                            body.setLinearVelocity(newvel);
+                            continue;
+                    }
+                    let newvel = new Ammo.btVector3( vel.x() - dampenx,
+                    vel.y() + (buo - gravity - dampeny) * deltaTime,
+                    vel.z() - dampenz * deltaTime); //also need area, update p to be density
                     body.setLinearVelocity(newvel);
                 }
             }
+
+            // function applyDrag(){
+            //     //for now only apply quaternions, velocity is applied in applybuo
+            //     for ( let i = 0; i < rigidBodies.length; i++ ){
+            //         let pbody = rigidBodies[i].userData.physicsBody;
+            //         let quat = rigidBodies[i].quaternion;
+            //         console.log(quat);
+            //         if (ca)
+            //     }
+
+            // }
 
 
             function updatePhysics( deltaTime ){
 
                 // Step world
                 physicsWorld.stepSimulation( deltaTime, 10 );
-                // for ( let i = 0; i < metallic.length; i++ ){
-                //     updateBodyMagnet(metallic[ i ]);
-                // }
-                // updateInterMagnetic();
+                for ( let i = 0; i < metallic.length; i++ ){
+                    updateBodyMagnet(metallic[ i ]);
+                }
+                updateInterMagnetic();
                 applyBuo( deltaTime );
+                // applyDrag();
 
                 // Update rigid bodies
                 for ( let i = 0; i < rigidBodies.length; i++ ) {
@@ -689,8 +762,18 @@
                         ms.getWorldTransform( tmpTrans );
                         let p = tmpTrans.getOrigin();
                         let q = tmpTrans.getRotation();
+                        // let ratio = 1 - calculateRatioUnder(objThree);
+                        // let endQuaternion = new THREE.Quaternion(0,0,0,1);
+                        // let qq = new THREE.Quaternion(q.x(), q.y(), q.z(), q.w());
+                        // qq.slerp(endQuaternion, 0.2);
+                        // let ammoqq = new Ammo.btQuaternion(qq.x, qq.y, qq.z, qq.w)
+                        // // console.log(tmpTrans.getRotation());
+                        // tmpTrans.setRotation(ammoqq);
+                        // // console.log(tmpTrans.getRotation());
                         objThree.position.set( p.x(), p.y(), p.z() );
                         objThree.quaternion.set( q.x(), q.y(), q.z(), q.w() );
+                        // let lerp = objThree.quaternion.slerp(endQuaternion, 0.8);
+                        // objThree.quaternion.set(qq.x, qq.y, qq.z, qq.w);
 
                     }
                 }
