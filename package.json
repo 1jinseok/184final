@@ -1,0 +1,19 @@
+{
+  "name": "magnet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "utils.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1jinseok/184final.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/1jinseok/184final/issues"
+  },
+  "homepage": "https://github.com/1jinseok/184final#readme"
+}
