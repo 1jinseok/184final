@@ -3,10 +3,38 @@
         <meta charset="utf-8">
         <title>magnet</title>
         <style>
-            body { margin: 0; }
+            body {
+                color: #61443e;
+                font-family:Monospace;
+                font-size:13px;
+                text-align:center;
+
+                background-color: #bfd1e5;
+                margin: 0px;
+                overflow: hidden;
+            }
+			#speedometer {
+				color: #ffffff;
+				background-color: #990000;
+				position: absolute;
+				bottom: 0px;
+				padding: 5px;
+			}
+            #info {
+                position: absolute;
+                top: 0px; width: 100%;
+                padding: 5px;
+            }
+
+            a {
+
+                color: #a06851;
+            }
         </style>
     </head>
     <body>
+        <div id="info">Floating Magnet Sandbox<br>Press a to shoot magnet<br>Press d to set drag, p to set density, b to set buoyancy, w to set water level<br> Current Variable:  <p id='variable'></p><p id='amt'></p><br>Press ,. to scale</div>
+        
         <script src="js/three.js"></script>
         <script src="js/ammo.js"></script>
         <script src="utils.js"></script>
@@ -241,8 +269,12 @@
                         constantChange = 1;
                         break;
 
-                    case 83: //shoot ball: s key
-                        shootBall(0);
+                    // case 83: //shoot ball: s key
+                    //     shootBall(0);
+                    //     break;
+
+                    case 65: //shoot magnet bar a key
+                        shootMagnetBar();
                         break;
                 }
             }
@@ -402,7 +434,7 @@
                 body.setFriction(4);
                 body.setRollingFriction(10);
 
-                physicsWorld.addRigidBody( body );
+                physicsWorld.addRigidBody( body);
             }
 
             function createInvisibleWall( posx, posy, posz, scx, scy, scz){
@@ -445,7 +477,7 @@
 
 
                 walls.push(blockPlane);
-                physicsWorld.addRigidBody( body );
+                physicsWorld.addRigidBody( body);
             }
 
             function createPositiveMagnetBall( xPos, zPos){
@@ -487,7 +519,7 @@
                 body.setActivationState( STATE.DISABLE_DEACTIVATION );
 
 
-                physicsWorld.addRigidBody( body );
+                physicsWorld.addRigidBody( body);
 
                 ball.userData.physicsBody = body;
                 ball.userData.density = 1;
@@ -535,7 +567,7 @@
                 body.setActivationState( STATE.DISABLE_DEACTIVATION );
 
 
-                physicsWorld.addRigidBody( body );
+                physicsWorld.addRigidBody( body);
 
                 ball.userData.physicsBody = body;
                 ball.userData.density = 1;
@@ -582,7 +614,7 @@
 
                 
                 blockBody.setActivationState( STATE.DISABLE_DEACTIVATION );
-                physicsWorld.addRigidBody( blockBody );
+                physicsWorld.addRigidBody( blockBody);
                 blockBody.setLinearVelocity(new Ammo.btVector3(0,0,0));
                 
                 block.userData.physicsBody = blockBody;
@@ -593,16 +625,16 @@
                 // Sphere Graphics
                 let ball = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0xb846db}));
 
-                ball.position.set(pos.x + 8, pos.y + 4, pos.z);
+                ball.position.set(pos.x + 6, pos.y + 4, pos.z);
 
                 ball.castShadow = true;
                 ball.receiveShadow = true;
 
-                scene.add(ball);
+                // scene.add(ball);
 
                 //Sphere Physics
                 transform.setIdentity();
-                transform.setOrigin( new Ammo.btVector3( pos.x + 8, pos.y + 4, pos.z ) );
+                transform.setOrigin( new Ammo.btVector3( pos.x + 6, pos.y + 4, pos.z ) );
                 transform.setRotation( new Ammo.btQuaternion( 0,0,0,1 ) );
                 motionState = new Ammo.btDefaultMotionState( transform );
 
@@ -615,7 +647,7 @@
                 rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, sphereColShape, localInertia );
                 let sphereBody = new Ammo.btRigidBody( rbInfo );
 
-                physicsWorld.addRigidBody( sphereBody );
+                physicsWorld.addRigidBody( sphereBody);
 
                 ball.userData.physicsBody = sphereBody;
                 ball.userData.density = 0.1;
@@ -625,16 +657,16 @@
                 //Sphere2 Graphics
                 let ball2 = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0x000055}));
 
-                ball2.position.set(pos.x - 8, pos.y + 4, pos.z);
+                ball2.position.set(pos.x - 6, pos.y + 4, pos.z);
 
                 ball2.castShadow = true;
                 ball2.receiveShadow = true;
 
-                scene.add(ball2);
+                // scene.add(ball2);
 
                 //Sphere2 Physics
                 transform.setIdentity();
-                transform.setOrigin( new Ammo.btVector3( pos.x - 8, pos.y + 4, pos.z ) );
+                transform.setOrigin( new Ammo.btVector3( pos.x - 6, pos.y + 4, pos.z ) );
                 transform.setRotation( new Ammo.btQuaternion( 0,0,0,1 ) );
                 motionState = new Ammo.btDefaultMotionState( transform );
 
@@ -647,22 +679,91 @@
                 rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, sphereColShape2, localInertia );
                 let sphereBody2 = new Ammo.btRigidBody( rbInfo );
 
-                physicsWorld.addRigidBody( sphereBody2 );
+                physicsWorld.addRigidBody( sphereBody2);
 
                 ball2.userData.physicsBody = sphereBody2;
                 ball2.userData.density = 0.1;
                 rigidBodies.push(ball2);
                 negativeMagnet.push(ball2);
 
+                //sphere3
+                let ball3 = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0x000055}));
+
+                ball3.position.set(pos.x - 6, pos.y + 4, pos.z + 1);
+
+                ball3.castShadow = true;
+                ball3.receiveShadow = true;
+
+                // scene.add(ball3);
+
+                //Sphere3 Physics
+                transform.setIdentity();
+                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y + 4, pos.z + 1 ) );
+                transform.setRotation( new Ammo.btQuaternion( 0,0,0,1 ) );
+                motionState = new Ammo.btDefaultMotionState( transform );
+
+                let sphereColShape3 = new Ammo.btSphereShape( radius );
+                sphereColShape3.setMargin( 0.05 );
+
+                localInertia = new Ammo.btVector3( 0, 0, 0 );
+                sphereColShape3.calculateLocalInertia( mass, localInertia );
+
+                rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, sphereColShape2, localInertia );
+                let sphereBody3 = new Ammo.btRigidBody( rbInfo );
+
+                physicsWorld.addRigidBody( sphereBody3);
+
+                ball3.userData.physicsBody = sphereBody3;
+                ball3.userData.density = 0.1;
+                rigidBodies.push(ball3);
+
+                //sphere4
+                let ball4 = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0x000055}));
+
+                ball4.position.set(pos.x, pos.y + 4, pos.z - 1);
+
+                ball4.castShadow = true;
+                ball4.receiveShadow = true;
+
+                // scene.add(ball4);
+
+                //Sphere4 Physics
+                transform.setIdentity();
+                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y + 4, pos.z - 1 ) );
+                transform.setRotation( new Ammo.btQuaternion( 0,0,0,1 ) );
+                motionState = new Ammo.btDefaultMotionState( transform );
+
+                let sphereColShape4 = new Ammo.btSphereShape( radius );
+                sphereColShape4.setMargin( 0.05 );
+
+                localInertia = new Ammo.btVector3( 0, 0, 0 );
+                sphereColShape4.calculateLocalInertia( mass, localInertia );
+
+                rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, sphereColShape4, localInertia );
+                let sphereBody4 = new Ammo.btRigidBody( rbInfo );
+
+                physicsWorld.addRigidBody( sphereBody4);
+
+                ball4.userData.physicsBody = sphereBody4;
+                ball4.userData.density = 0.1;
+                rigidBodies.push(ball4);
+
                 //Create Joints
                 let spherePivot = new Ammo.btVector3( 0, 0, 0 );
-                let blockPivot = new Ammo.btVector3( 8, 0, 0 );
-                let blockPivot2 = new Ammo.btVector3(-8,0,0);
+                let blockPivot = new Ammo.btVector3( 6, 0, 0 );
+                let blockPivot2 = new Ammo.btVector3(-6,0,0);
+                let blockPivot3 = new Ammo.btVector3(0,0,1);
+                let blockPivot4 = new Ammo.btVector3(0,0,-1);
                 let p2p = new Ammo.btPoint2PointConstraint( sphereBody, blockBody, spherePivot, blockPivot);
                 physicsWorld.addConstraint( p2p, true );
                 let p2p2 = new Ammo.btPoint2PointConstraint( sphereBody2, blockBody, spherePivot, blockPivot2);
                 physicsWorld.addConstraint( p2p2, true );
+                let p2p3 = new Ammo.btPoint2PointConstraint( sphereBody3, blockBody, spherePivot, blockPivot3);
+                physicsWorld.addConstraint( p2p3, true );
+                let p2p4 = new Ammo.btPoint2PointConstraint( sphereBody4, blockBody, spherePivot, blockPivot4);
+                physicsWorld.addConstraint( p2p4, true );
 
+                return block;
 
 
             }
@@ -709,15 +810,26 @@
                 body.setLinearVelocity(new Ammo.btVector3(-copycamerapos.x / 2, 20, -copycamerapos.z / 2));
 
 
-                physicsWorld.addRigidBody( body );
+                physicsWorld.addRigidBody( body);
 
                 ball.userData.physicsBody = body;
                 rigidBodies.push(ball);
                 magnet.push(ball);
-                negativeMagnet.push(ball);
+                // negativeMagnet.push(ball);
+            }
+
+            function shootMagnetBar(){
+                let copycamerapos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
+                copycamerapos.setLength(50);
+                let bar = createMagnetBar(copycamerapos.x, copycamerapos.y, copycamerapos.z);
+                bar.userData.physicsBody.setLinearVelocity(new Ammo.btVector3(-copycamerapos.x / 2, 20, -copycamerapos.z / 2));
             }
 
             function moveMagBall(){
+
+                if (!controlObject){
+                    return;
+                }
 
                 let scalingFactor = 2;
 
@@ -755,7 +867,9 @@
                     case 0:
                         waterDirection = constantChange;
 
-                    case 1: //gravity
+                    case 1: //density
+                        document.getElementById('variable').innerHTML = "density"
+                        document.getElementById('amt').innerHTML = densityConstant
                         densityConstant += constantChange * 1 * deltaTime;
                         if (densityConstant < 0) {
                             densityConstant = 0;
@@ -763,6 +877,8 @@
                         break;
                     
                     case 2: //magnet
+                        document.getElementById('variable').innerHTML = "magnet constant"
+                        document.getElementById('amt').innerHTML = magnetConstant
                         magnetConstant += constantChange * 100 * deltaTime;
                         if (magnetConstant < 0) {
                             magnetConstant = 0;
@@ -773,6 +889,8 @@
                         break;
 
                     case 3: //buo
+                        document.getElementById('variable').innerHTML = "buoyancy constant"
+                        document.getElementById('amt').innerHTML = buoyancyConstant
                         buoyancyConstant += constantChange * 0.1 * deltaTime;
                         if (buoyancyConstant < 0) {
                             buoyancyConstant = 0;
@@ -780,6 +898,8 @@
                         break;
 
                     case 4: //drag
+                        document.getElementById('variable').innerHTML = "drag constant"
+                        document.getElementById('amt').innerHTML = dragConstant
                         dragConstant += constantChange * 0.01 * deltaTime;
                         if (dragConstant < 0) {
                             dragConstant = 0;
