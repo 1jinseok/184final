@@ -11,9 +11,9 @@ import {
 	UniformsUtils,
 	Vector2,
 	Vector4
-} from "../../../build/three.module.js";
-import { Reflector } from "../../../js/reflector.mjs";
-import { Refractor } from "../../../js/refractor.mjs";
+} from "../../../code/build/three.module.js";
+import { Reflector } from "../../../code/js/reflector.mjs";
+import { Refractor } from "../../../code/js/refractor.mjs";
 /**
  * References:
  *	http://www.valvesoftware.com/publications/2010/siggraph2010_vlachos_waterflow.pdf
