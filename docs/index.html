@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>  
+    div.padded {  
+      padding-top: 0px;  
+      padding-right: 100px;  
+      padding-bottom: 0.25in;  
+      padding-left: 100px;  
+    }  
+  </style> 
+<title>Final Report | CS 184</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+<br />
+<h1 align="middle">Floating Magnet Simulator</h1>
+    <h2 align="middle">Jin Seok Won</h2>
+    <h3 align="middle">Summer 2020</h3>
+
+    <div class="padded">
+        <h2 align="left">Abstract</h2>
+        <p>
+            The floating magnet Sandbox is an interactive simulator with added features of magnets, 
+            buoyancy, and drag. I extended upon ammo.js physics engine which is c++ version of bullet physics. 
+            I used three.js and webGL for rendering. <br>The main goal of this project was creating an interactive 
+            environment. The user can use mouse and keyboard interaction to move and create object, change parameters,
+            and change camera perspective and zoom. Physical forces in the simulator such as magnetic forces and 
+            drag are calculated using heuristical methods since physically accurate calculations are complicated and 
+            hard to generalize to different mesh objects.
+        </p>
+
+        <h2 align="left">Approach</h2>
+        <p>
+            My approach for physics was to add additional external forces to ammo.js physics world. 
+            I applied all the forces other than gravity through setVelocity function to the ammo.js 
+            physics world, which then checks for collisions and sets correct velocity and rotation upon 
+            collision. <br>In three.js programs that use ammo.js for physics engine, all objects exists
+            both in the scene space of three.js and physics world of ammo.js. At each time step, three.js 
+            objects are updated using the information from the motion state given by the physics world. 
+            To implement forces not supported by the ammo.js, I calculated the external forces from the 
+            information of the three.js objects and applied acceleration to each of the physics world objects 
+            at each time step.
+            <br>
+            <br>
+            Since modeling magnetic field is very challenging, I implemented simple inverse square law for the repulsion and attraction force between magnets.
+            Objects can be positively charged, negatively charged, metallic, or none.
+            In the image below you can see 4 spheres attached to the magnet bar. Pink and Blue spheres apply magnetic force to the bar while black and white spheres slow down the spinning of the bar.
+            <br>
+            <br>
+            <br>
+            <tr>
+                <td>
+                    <img src="images/magnet_law.png" align="middle" width="480px" />
+                    <figcaption align="middle">Inverse square law between magnetic force and distance</figcaption>
+                </td>
+            </tr>
+            <h3 align="middle">
+                Source: Socratic.org
+            </h3>
+            <br>
+            Buoyancy is calculated based on density, gravity, and ratio of volume under water
+            I approximated volume under water using the bounding sphere of the object and sphere cap volume formula below
+            For drag I used nasa’s drag equation which approximates the drag using squared velocity and area. 
+            I omitted the area term since bounding sphere volume turned out to be too inaccurate for drag.
+            <br>
+            <br>
+            <div align="center">
+                <table style="width=100%">
+                    <tr>
+                        <td>
+                            <img src="images/spherical_cap.png" align="middle" width="320" />
+                            <figcaption align="middle">Spherical Cap</figcaption>
+                        </td>
+                        <td>
+                            <img src="images/spherical_cap_formula.png" align="middle" width="480px" />
+                            <figcaption align="middle">Formulas for the volume of spherical cap</figcaption>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <h3 align="middle">
+                Source: Wikipedia
+            </h3>
+
+        <h2 align="left">Implementing External Forces</h2>
+        <h3 align="left">General Pipeline</h3>
+        <p>
+            1. Create objects both in three.js and ammo.js. Add them to the physical world of ammo.js, and rigid bodies array. <br><br>
+            2. At each all of render frame, update the magnetic forces. Attraction between opposite charges, 
+            repulsion between same chages, attraction of the metallic object is calculated. <br><br>
+            3. At the same time, buoyancy and drag is calculated. Buoyancy takes current water level, object 
+            density and bounding volume into account. Drag is calculated from current velocity. <br><br>
+            4. All of the external forces to each rigid body is applied as acceleration to the objects in the 
+            ammo.js physics world. <br><br>
+            5. Ammo.js physics world steps forward with updated velocity changing object locations and applying 
+            the effect of colisions. <br><br>
+            6. Objects in three.js scene is updated according to the information from physics world.<br><br>
+        </p>
+        <h3 align="left">Challenges and Solutions</h3>
+        <h4 align="left">Dissipating Energy</h4>
+        <p>
+            Since the ammo.js default world does not support air resistance, and objects floating in my 
+            simulation is technically in the air in terms of physical world, they do not stop once force is 
+            applied to them. With the implementation of drag, their velocity slows down, but their rotations 
+            do not. I used the constraint feature of ammo.js to dissipate energy by turning objects rotation 
+            into velocity of its set objects. In the picture below, black and white spheres help slow down 
+            the rotation of the magnet bar (yellow)
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/object_structure.png" align="middle" width="480px" />
+                        <figcaption align="middle">Spheres bind to the bar help dissipate energy</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <p>
+            Linking sphere balls to a magnet bar also allowed me to put opposite charges on the magnet bar. 
+            In the picture, blue ball has negative charge and the pink ball has positive charge.
+        </p>
+
+
+        <h2 align="left">Interactivity</h2>
+        <h3 align="left">Camera Control</h3>
+        <p>
+            User can mouse drag on the screen to change perspective. This is implemented with javascript 
+            event listeners, spherical coordinates, and three.js camera lookat function which made it easy 
+            to point the camera to the center.
+        </p>
+        <h3 align="left">Selecting Object</h3>
+        <p>
+            By casting a ray with three.js raycastor, I can obtain the object that the user clicked on. 
+            three.js allows the generation of the ray in the camera direction, so I only need to modify 
+            starting position and get the first intersection. User can then move the object with arrow keys.
+        </p>
+        <h3 align="left">Changing Parameters</h3>
+        <p>
+            User can use keyboard inputs to change different constants like density multiplier, buoyancy constant,
+            and drag constant. Current constant is displayed on the top of the screen
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/ui.png" align="middle" width="480px" />
+                        <figcaption align="middle">UI displaying the keyboard controls and current constant value</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 align="left">Results</h2>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/magnet_bar_attraction.png" align="middle" width="480px" />
+                        <figcaption align="middle">Charged particles being attracted to magnet bar</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/change_camera_perspective.png" align="middle" width="480px" />
+                        <figcaption align="middle">Changed camera perspective with mouse control</figcaption>
+                    </td>
+                </tr>
+                <br />
+                <tr>
+                    <td>
+                        <img src="images/original_color.png" align="middle" width="480px" />
+                        <figcaption align="middle">Before selecting</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/chaged_color.png" align="middle" width="480px" />
+                        <figcaption align="middle">After selecting the red ball<br>User can move red ball</figcaption>
+                    </td>
+                </tr>
+                <br />
+                <tr>
+                    <td>
+                        <img src="images/high_water_level.png" align="middle" width="480px" />
+                        <figcaption align="middle">High water level</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/low_water_level.png" align="middle" width="480px" />
+                        <figcaption align="middle">Low water level</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 align="left">References</h2>
+        <p>
+            Three.js<br><br>
+            Ammo.js<br><br>
+            https://wright.nasa.gov/airplane/drageq.html<br><br>
+            https://threejs.org/examples/webgl_water.html<br><br>
+            Bullet User Manual<br><br>
+            https://medium.com/@bluemagnificent/intro-to-javascript-3d-physics-using-ammo-js-and-three-js-dd48df81f591<br><br>
+
+        </p>
+        <h2 align="left">Contributions</h2>
+        <h3 align="left">Jin Seok Won</h3>
+        <p>
+            Came up with the idea<br>
+            Wrote the proposal<br>
+            Wrote milestone<br>
+            Implemented the physics pipeline <br>
+            Created UI<br>
+            Made the magnet bar object<br>
+            Made final report<br>
+            Presented<br>
+
+
+        </p>
+        
+
+
+
+    </div>
+</body>
+</html>
+
+
+
+

@@ -98,11 +98,11 @@
                 createInvisibleWall(-50,(waterlevel + 5) / 2,0,2,waterlevel + 5,102);
                 createBlock();
                 createMagnetBar(0,0,0);
-                // createMagBall();
                 createPositiveMagnetBall(20, 20);
                 createPositiveMagnetBall(-20, -20);
                 createNegativeMagnetBall(20, -20);
                 createNegativeMagnetBall(-20, 20);
+                // createTorus(0,0);
 
                 setupEventHandlers();
                 renderFrame();
@@ -140,13 +140,6 @@
                 camera.position.set( 0, 60, 80 );
                 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-                //Add hemisphere light
-                // let hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.1 );
-                // light = hemiLight;
-                // hemiLight.color.setHSL( 0.6, 0.6, 0.6 );
-                // hemiLight.groundColor.setHSL( 0.1, 1, 0.4 );
-                // hemiLight.position.set( 0, 50, 0 );
-                // scene.add( hemiLight );
                 var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
 				scene.add( ambientLight );
 
@@ -488,7 +481,7 @@
                 let mass = 1;
 
                 //threeJS Section
-                let ball = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0xff0505}));
+                let ball = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0xee1111}));
 
                 ball.position.set(pos.x, pos.y, pos.z);
                 
@@ -528,6 +521,52 @@
                 positiveMagnet.push(ball);
             }
 
+            function createTorus( xPos, zPos){
+                
+                let pos = {x: xPos, y: 4, z: zPos};
+                let radius = 2;
+                let quat = {x: 0, y: 0, z: 0, w: 1};
+                let mass = 1;
+
+                //threeJS Section
+                let ball = new THREE.Mesh(new THREE.TorusKnotGeometry(5,2,100,16), new THREE.MeshNormalMaterial({color: 0xee1111}));
+
+                ball.position.set(pos.x, pos.y, pos.z);
+                
+                ball.castShadow = true;
+                ball.receiveShadow = true;
+
+                scene.add(ball);
+
+
+                //Ammojs Section
+                let transform = new Ammo.btTransform();
+                transform.setIdentity();
+                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+                transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+                let motionState = new Ammo.btDefaultMotionState( transform );
+
+                let colShape = new Ammo.btSphereShape( radius );
+                colShape.setMargin( 0.05 );
+
+                let localInertia = new Ammo.btVector3( 0, 0, 0 );
+                colShape.calculateLocalInertia( mass, localInertia );
+
+                let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+                let body = new Ammo.btRigidBody( rbInfo );
+
+                body.setFriction(3);
+                body.setRollingFriction(3);
+                body.setActivationState( STATE.DISABLE_DEACTIVATION );
+
+
+                physicsWorld.addRigidBody( body);
+
+                ball.userData.physicsBody = body;
+                ball.userData.density = 200;
+                rigidBodies.push(ball);
+            }
+
             function createNegativeMagnetBall( xPos, zPos ){
                 
                 let pos = {x: xPos, y: 4, z: zPos};
@@ -536,7 +575,7 @@
                 let mass = 1;
 
                 //threeJS Section
-                let ball = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0x0505ff}));
+                let ball = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0x1111ee}));
 
                 ball.position.set(pos.x, pos.y, pos.z);
                 
@@ -623,14 +662,14 @@
 
 
                 // Sphere Graphics
-                let ball = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0xb846db}));
+                let ball = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0xee1111}));
 
                 ball.position.set(pos.x + 6, pos.y + 4, pos.z);
 
                 ball.castShadow = true;
                 ball.receiveShadow = true;
 
-                // scene.add(ball);
+                //scene.add(ball);
 
                 //Sphere Physics
                 transform.setIdentity();
@@ -662,7 +701,7 @@
                 ball2.castShadow = true;
                 ball2.receiveShadow = true;
 
-                // scene.add(ball2);
+                //scene.add(ball2);
 
                 //Sphere2 Physics
                 transform.setIdentity();
@@ -687,14 +726,14 @@
                 negativeMagnet.push(ball2);
 
                 //sphere3
-                let ball3 = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0x000055}));
+                let ball3 = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0xdddddd}));
 
                 ball3.position.set(pos.x - 6, pos.y + 4, pos.z + 1);
 
                 ball3.castShadow = true;
                 ball3.receiveShadow = true;
 
-                // scene.add(ball3);
+                //scene.add(ball3);
 
                 //Sphere3 Physics
                 transform.setIdentity();
@@ -718,14 +757,14 @@
                 rigidBodies.push(ball3);
 
                 //sphere4
-                let ball4 = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0x000055}));
+                let ball4 = new THREE.Mesh(new THREE.SphereBufferGeometry(radius), new THREE.MeshPhongMaterial({color: 0x111111}));
 
                 ball4.position.set(pos.x, pos.y + 4, pos.z - 1);
 
                 ball4.castShadow = true;
                 ball4.receiveShadow = true;
 
-                // scene.add(ball4);
+                //scene.add(ball4);
 
                 //Sphere4 Physics
                 transform.setIdentity();
@@ -865,10 +904,13 @@
                 switch( currentSwitch ){
 
                     case 0:
+                        document.getElementById('variable').innerHTML = "water level"
+                        document.getElementById('amt').innerHTML = waterlevel
                         waterDirection = constantChange;
+                        break;
 
                     case 1: //density
-                        document.getElementById('variable').innerHTML = "density"
+                        document.getElementById('variable').innerHTML = "density multiplier"
                         document.getElementById('amt').innerHTML = densityConstant
                         densityConstant += constantChange * 1 * deltaTime;
                         if (densityConstant < 0) {
@@ -1011,11 +1053,11 @@
                     let ratioUnder = calculateRatioUnder( rigidBodies[ i ] );
                     let buo = densityConstant * buoyancyConstant * gravity * calculateVolUnder( rigidBodies[ i ] ) / density;
                     let dampenfactor = dragConstant * p / 2 * ratioUnder;
-                    // let dampenx = dampenfactor * Math.pow(vel.x(), 2);
+                    let dampenx = dampenfactor * Math.pow(vel.x(), 2);
                     let dampeny = dampenfactor * Math.pow(vel.y(), 2);
-                    // let dampenz = dampenfactor * Math.pow(vel.z(), 2);
-                    let dampenx = 1;
-                    let dampenz = 1;
+                    let dampenz = dampenfactor * Math.pow(vel.z(), 2);
+                    // let dampenx = ratioUnder;
+                    // let dampenz = ratioUnder;
                     let a = rigidBodies[ i ].position.y > waterlevel && vel.y() > 0;
                     let b = rigidBodies[ i ].position.y < waterlevel && vel.y() < 0;
                     if ( vel.x() < 0 ){
