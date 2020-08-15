@@ -2,13 +2,68 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <style>  
-    div.padded {  
-      padding-top: 0px;  
-      padding-right: 100px;  
-      padding-bottom: 0.25in;  
-      padding-left: 100px;  
-    }  
+    body {
+            padding: 50px;
+            padding-top: 0px;
+            width: 1000px;
+            margin: auto;
+            text-align: left;
+            font-weight: 400;
+            font-family: 'Open Sans', sans-serif;
+            color: #020202;
+        }
+        h1, h2, h3, h4, h5 {
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+        h5 {
+            margin-top: 20px !important;
+        }
+        ol {
+            list-style-type: decimal;
+        }
+        ol ol {
+            list-style-type: lower-latin;
+        }
+        ol ol ol {
+            list-style-type: lower-roman;
+        }
+        p { line-height: 1.8em; } 
+        .topnav {
+        background-color: #333;
+        overflow: hidden;
+        }
+
+        /* Style the links inside the navigation bar */
+        .topnav a {
+        float: left;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+        }
+
+        /* Change the color of links on hover */
+        .topnav a:hover {
+        background-color: #ddd;
+        color: black;
+        }
+
+        /* Add a color to the active/current link */
+        .topnav a.active {
+        background-color: #999999;
+        color: white;
+        }
   </style> 
+  <div class="topnav">
+  <a class="index.html" href="#home">Report</a>
+  <a href="../index.html">Demo</a>
+  <a href="https://www.youtube.com/watch?v=tY6I7J9d7fY">Video</a>
+  <a href="https://github.com/1jinseok/184final">Github</a>
+  <a href="https://github.com/kripken/ammo.js/">ammo.js</a>
+  <a href="https://threejs.org/">three.js</a>
+  <a href="https://threejs.org/examples/?q=water#webgl_water">three.js Water Shader</a>
+</div>
 <title>Final Report | CS 184</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
@@ -30,6 +85,8 @@
             drag are calculated using heuristical methods since physically accurate calculations are complicated and 
             hard to generalize to different mesh objects.
         </p>
+
+        <hr>
 
         <h2 align="left">Approach</h2>
         <p>
@@ -53,12 +110,9 @@
             <tr>
                 <td>
                     <img src="images/magnet_law.png" align="middle" width="480px" />
-                    <figcaption align="middle">Inverse square law between magnetic force and distance</figcaption>
+                    <figcaption align="middle">Inverse square law between magnetic force and distance<br>Image Source: Socratic.org</figcaption>
                 </td>
             </tr>
-            <h3 align="middle">
-                Source: Socratic.org
-            </h3>
             <br>
             Buoyancy is calculated based on density, gravity, and ratio of volume under water
             I approximated volume under water using the bounding sphere of the object and sphere cap volume formula below
@@ -81,9 +135,11 @@
                 </table>
             </div>
             
-            <h3 align="middle">
-                Source: Wikipedia
-            </h3>
+            <p align="middle">
+                Image Source: Wikipedia
+            </p>
+
+        <hr>
 
         <h2 align="left">Implementing External Forces</h2>
         <h3 align="left">General Pipeline</h3>
@@ -124,6 +180,8 @@
             In the picture, blue ball has negative charge and the pink ball has positive charge.
         </p>
 
+        <hr>
+
 
         <h2 align="left">Interactivity</h2>
         <h3 align="left">Camera Control</h3>
@@ -153,6 +211,11 @@
                 </tr>
             </table>
         </div>
+        <br>
+        <br>
+
+
+        <hr>
 
         <h2 align="left">Results</h2>
         <div align="center">
@@ -189,8 +252,32 @@
                         <figcaption align="middle">Low water level</figcaption>
                     </td>
                 </tr>
+                <tr>
+                    <td>
+                        <video width="720" controls>
+                            <source src="images/throw.mp4" type="video/mp4">
+                        </video>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <video width="720" controls>
+                            <source src="images/density.mp4" type="video/mp4">
+                        </video>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <video width="720" controls>
+                            <source src="images/waterlevel.mp4" type="video/mp4">
+                        </video>
+                    </td>
+                </tr>
             </table>
         </div>
+        <br>
+        <hr>
+        <br>
 
         <h2 align="left">References</h2>
         <p>
@@ -202,6 +289,7 @@
             https://medium.com/@bluemagnificent/intro-to-javascript-3d-physics-using-ammo-js-and-three-js-dd48df81f591<br><br>
 
         </p>
+        <hr>
         <h2 align="left">Contributions</h2>
         <h3 align="left">Jin Seok Won</h3>
         <p>
